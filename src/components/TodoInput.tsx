@@ -15,18 +15,23 @@ const TodoInput: React.FC<Props> = ({
   askGemini,
   loading,
 }) => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!loading && input.trim()) askGemini();
+  };
+
   return (
-    <div className={styles.inputWrap}>
+    <form className={styles.inputWrap} onSubmit={handleSubmit}>
       <input
         className={styles.input}
         placeholder="Ask AI to create tasks"
         value={input}
         onChange={(e) => setInput(e.target.value)}
       />
-      <button className={styles.button} onClick={askGemini} disabled={loading}>
-        {loading ? "Thinking..." : "AI Add"}
+      <button className={styles.button} type="submit" disabled={loading}>
+        {loading ? "Thinking..." : "Generate"}
       </button>
-    </div>
+    </form>
   );
 };
 
