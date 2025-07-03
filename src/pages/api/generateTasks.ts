@@ -11,7 +11,7 @@ export default async function handler(
     return res.status(400).json({ error: "No prompt provided" });
   }
 
-const formattedPrompt = `
+  const formattedPrompt = `
 You are an intelligent to-do list assistant.
 
 🎯 Goal:
@@ -36,7 +36,6 @@ Return ONLY a JavaScript array of strings like:
 🧠 Input:
 ${userInput}
 `.trim();
-
 
   try {
     const response = await fetch(
@@ -66,7 +65,7 @@ ${userInput}
       if (Array.isArray(tasks)) {
         return res.status(200).json({ tasks });
       }
-    } catch (e) {
+    } catch {
       const fallback = rawText
         .split("\n")
         .map((line: string) => line.replace(/^[-*•]\s*/, "").trim())
