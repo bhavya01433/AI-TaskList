@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import styles from "../styles/Home.module.css";
 import TodoList from "../components/TodoList";
 import TodoInput from "../components/TodoInput";
 import ManualInput from "../components/ManualInput";
-import { json } from "stream/consumers";
 
 export type Todo = {
   text: string;
