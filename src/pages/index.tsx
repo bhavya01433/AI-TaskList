@@ -6,6 +6,9 @@ import TodoList from "../components/TodoList";
 import TodoInput from "../components/TodoInput";
 import ManualInput from "../components/ManualInput";
 
+import { useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
+
 export type Todo = {
   text: string;
   completed: boolean;
@@ -20,6 +23,10 @@ export default function Home() {
   const [editValue, setEditValue] = useState("");
   const [showCompletedEditMessage, setShowCompletedEditMessage] =
     useState(false);
+
+  //  Convex mutations
+  const addPrompt = useMutation(api.functions.prompts.addPrompt);
+  const addTask = useMutation(api.functions.tasks.addTask);
 
   // Toast message
   useEffect(() => {
@@ -37,7 +44,7 @@ export default function Home() {
     }
   }, [showCompletedEditMessage]);
 
-  //Local Storage
+  // Local Storage
   useEffect(() => {
     const storedTodos = localStorage.getItem("todos");
     if (storedTodos) {
@@ -56,21 +63,27 @@ export default function Home() {
     }
     setLoading(true);
     try {
+      // Save prompt in Convex
+      const promptId = await addPrompt({ promptText: input });
+
+      // Call Gemini
       const response = await fetch("/api/generateTasks", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: input }),
       });
 
       const data = await response.json();
       const tasks: string[] = data.tasks || [];
-      const formatted = tasks.map((t: string) => ({
-        text: t,
-        completed: false,
-      }));
 
+      const formatted = tasks.map((t) => ({ text: t, completed: false }));
+
+      // Save each task to Convex
+      for (const task of formatted) {
+        await addTask({ text: task.text, promptId });
+      }
+
+      // Update local state
       setTodos((prev) => [...prev, ...formatted]);
       setMessage("AI-generated tasks added ✨");
       setInput("");
@@ -82,7 +95,6 @@ export default function Home() {
     }
   };
 
-  //Edit task
   const saveEditedTask = () => {
     if (editingIndex !== null && editValue.trim()) {
       const updated = [...todos];
@@ -97,7 +109,6 @@ export default function Home() {
     }
   };
 
-  //Delete task
   const handleDeleteTask = (index: number) => {
     const updated = [...todos];
     updated.splice(index, 1);
@@ -105,14 +116,12 @@ export default function Home() {
     setMessage(`Task deleted 🗑️`);
   };
 
-  //Complete task
   const toggleComplete = (index: number) => {
     const updated = [...todos];
     updated[index].completed = !updated[index].completed;
     setTodos(updated);
   };
 
-  //New chat
   const startNewTaskList = () => {
     setTodos([]);
     localStorage.removeItem("todos");
